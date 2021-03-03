@@ -26,6 +26,8 @@ calcLUH2v2<-function(landuse_types="magpie",irrigation=FALSE,cellular=FALSE,cell
   
   if (cellular){
     if (cells=="lpjcell"){
+      
+      # here and for all readLUH2v2 calls add toolCoord2Isocell (including cells argument)
       x <- readSource("LUH2v2",subtype = "states_lpjcell",convert="onlycorrect")[,selectyears,]
       getSets(x) <- c("iso","cell","t","landuse")   
     } else if(cells=="magpiecell"){
