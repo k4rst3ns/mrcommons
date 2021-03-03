@@ -30,7 +30,7 @@ toolCoord2Isocell <- function(x, cells="magpiecell") {
                                         Please first expand your object to cover all needed cells.")
   } else if(cells=="lpjcell"){
     
-    getItems(x,dim = "cell",   maindim = 1) <- 1:67420
+    getItems(x, dim = "cell",   maindim = 1) <- 1:67420
     x <- collapseDim(x, dim = c("x","y"))
     
   } else {stop("Unknown cells argument.")}

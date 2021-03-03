@@ -1,10 +1,14 @@
-#' @title toolGetMappingCoord2Country
+#' @title       toolGetMappingCoord2Country
 #' @description loads mapping of cellular coordinate data (67420 halfdegree cells) to country iso codes
 #' 
 #' @param pretty If TRUE, coordinate data is returned as numeric 'lon' and 'lat' columns
+#' 
 #' @return data frame of mapping
-#' @author Felicitas Beier
-#' @import stringr str_split
+#' 
+#' @author Felicitas Beier, Kristine Karstens
+#' 
+#' @importFrom stringr str_split
+#' 
 #' @export
 
 toolGetMappingCoord2Country <- function(pretty=FALSE){

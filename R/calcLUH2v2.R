@@ -19,7 +19,7 @@
 #' @importFrom magclass getNames
 #' @importFrom magpiesets findset
 
-calcLUH2v2<-function(landuse_types="magpie",irrigation=FALSE,cellular=FALSE,cells="magpiecell",selectyears="past"){
+calcLUH2v2 <- function(landuse_types="magpie", irrigation=FALSE, cellular=FALSE, cells="magpiecell", selectyears="past") {
   
   
   selectyears <- sort(findset(selectyears,noset = "original"))

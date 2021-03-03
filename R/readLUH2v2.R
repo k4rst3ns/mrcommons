@@ -99,7 +99,7 @@ readLUH2v2 <- function(subtype) {
     getYears(x) <- 2000
     getNames(x) <- "ccode"
     getCells(x) <- paste(map$coords,map$iso,sep=".")
-    getSets(x) <- c("x.y.iso","t","ccode")
+    getSets(x)  <- c("x.y.iso","t","ccode")
   }
   
   return(clean_magpie(x))
