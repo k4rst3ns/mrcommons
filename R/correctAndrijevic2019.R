@@ -16,6 +16,18 @@
 correctAndrijevic2019 <- function(x, subtype) {
 
   x <- toolCountryFill(x, fill = NA)
-
-  return(x)
+  
+  #fill NA values
+  pop <- calcOutput("Population",aggregate=FALSE)[,2010,1]
+  getYears(pop) <- NULL
+  pop2 <- new.magpie(getCells(x),getYears(x))
+  pop2[,,] <- pop
+  
+  z <- NULL
+  for (i in getNames(x)) {
+    y <- toolFillWithRegionAvg(x[,,i],weight = pop2)
+    z <- mbind(z,y)
+  }
+  
+  return(z)
 }
