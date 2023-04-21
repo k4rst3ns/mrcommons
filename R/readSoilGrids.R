@@ -77,7 +77,7 @@ readSoilGrids <- function(subtype) {
   # Change longitude and latitude
   r50   <- raster(res = 0.5)
   mag   <- projectRaster(out, r50, over = TRUE)
-  mag   <- as.magpie(terra::extract(mag, map[c("lon", "lat")])[, -1], spatial = 1)
+  mag   <- as.magpie(terra::extract(mag, map[c("lon", "lat")]), spatial = 1)
 
   getNames(mag) <- subtype
   getCells(mag) <- paste(map$coords, map$iso, sep = ".")
