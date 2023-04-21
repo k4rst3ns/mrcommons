@@ -10,8 +10,9 @@
 #' readSource("SoilGrids", subtype = "cstock_0_30", convert = "onlycorrect")
 #' }
 correctSoilGrids <- function(x) {
+
   x <- toolConditionalReplace(x, conditions = c("is.na()", "<0"), replaceby = 0)
-  x <- toolCell2isoCell(x)
+  x <- toolCoord2Isocell(x)
 
   return(x)
 }
