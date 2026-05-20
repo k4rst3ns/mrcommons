@@ -55,22 +55,22 @@ readMAgPIEBiomass <- function(subtype) {
   variable <- subtypeList$variable
 
   fileMap <- c(
-    supply     = "biomass_supply.mif",
-    cropresPot = "biomass_potential_cropres.mif",
-    woodresPot = "biomass_potential_woodres.mif",
-    biogasPot  = "biomass_potential_biogas.mif"
+    supply     = "biomass_supply.csv",
+    cropresPot = "biomass_potential_cropres.csv",
+    woodresPot = "biomass_potential_woodres.csv",
+    biogasPot  = "biomass_potential_biogas.csv"
   )
 
   # Short variable names replacing long MIF reporting strings
   varNames <- list(
-    supply     = c("Biomass supply|Wood fuel (PJ/yr)"                                    = "tradfuel.woodfuel",
-                   "Biomass supply|Manure Collected As Fuel (PJ/yr)"                     = "tradfuel.manurefuel"),
-    cropresPot = c("Biomass potential|Crop residues|+|Straw (PJ/yr)"                     = "pot2ndBE.cropres.straw",
-                   "Biomass potential|Crop residues|+|Other fibrous crop residues (PJ/yr)" = "pot2ndBE.cropres.fibrous",
-                   "Biomass potential|Crop residues|+|Non fibrous crop residues (PJ/yr)" = "pot2ndBE.cropres.nonfibrous"),
-    woodresPot = c("Biomass potential|Wood processing residues (PJ/yr)"                  = "pot2ndBE.woodres"),
-    biogasPot  = c("Biomass potential|Biogas feedstock|+|Manure - Anaerobic Digester (PJ/yr)" = "biogas.manure",
-                   "Biomass potential|Biogas feedstock|+|Forage (PJ/yr)"                 = "biogas.forage")
+    supply     = c("Biomass supply\\|Wood fuel \\(PJ/yr\\)"                                    = "tradfuel.woodfuel",
+                   "Biomass supply\\|Manure Collected As Fuel \\(PJ/yr\\)"                     = "tradfuel.manurefuel"),
+    cropresPot = c("Biomass potential\\|Crop residues\\|\\+\\|Straw \\(PJ/yr\\)"                     = "pot2ndBE.cropres.straw",
+                   "Biomass potential\\|Crop residues\\|\\+\\|Other fibrous crop residues \\(PJ/yr\\)" = "pot2ndBE.cropres.fibrous",
+                   "Biomass potential\\|Crop residues\\|\\+\\|Non fibrous crop residues \\(PJ/yr\\)" = "pot2ndBE.cropres.nonfibrous"),
+    woodresPot = c("Biomass potential\\|Wood processing residues \\(PJ/yr\\)"                  = "pot2ndBE.woodres"),
+    biogasPot  = c("Biomass potential\\|Biogas feedstock\\|\\+\\|Manure - Anaerobic Digester \\(PJ/yr\\)" = "biogas.manure",
+                   "Biomass potential\\|Biogas feedstock\\|\\+\\|Forage \\(PJ/yr\\)"                 = "biogas.forage")
   )
 
   path <- file.path(ver, fileMap[[variable]])
@@ -79,10 +79,7 @@ readMAgPIEBiomass <- function(subtype) {
          "Expected MAgPIE version folder '", ver, "' inside the MAgPIEBiomass source directory.")
   }
 
-  x <- read.report(path, as.list = FALSE)
-
-  # read.report returns model.scenario.variable in dim 3 — drop the model dim
-  x <- collapseNames(x, collapsedim = "model")
+  x <- as.magpie(read.csv(path))
 
   # Preserve dim1/dim2 set names (e.g. "iso", "t")
   sets12 <- getSets(x)[1:2]
@@ -90,20 +87,13 @@ readMAgPIEBiomass <- function(subtype) {
   # Build new dim-3 names: replace long MIF strings with short hierarchical names.
   # For cropresPot: read.report auto-splits the dot in variable names producing
   # scenario.variable.scen; we move scen to 3.2 → scenario.scen.type.category.variable
-  n     <- getNames(x)
-  parts <- strsplit(n, "\\.", fixed = TRUE)
+  getNames(x) <- stringr::str_replace_all(getNames(x), varNames[[variable]])
 
   if (variable == "cropresPot") {
     # parts = c(ssp, mif_variable, cf0p3_md4) — reorder to ssp.cf0p3_md4.<short_var>
-    new_n <- vapply(parts, function(p)
-      paste(p[1L], p[3L], varNames$cropresPot[p[2L]], sep = "."), character(1L))
-    getNames(x) <- new_n
     getSets(x)  <- c(sets12, "scenario", "scen", "type", "category", "variable")
   } else {
-    # parts = c(ssp, mif_variable) → ssp.<short_var>
-    new_n <- vapply(parts, function(p)
-      paste(p[1L], varNames[[variable]][p[2L]], sep = "."), character(1L))
-    getNames(x) <- new_n
+    # parts = c(ssp, mif_variable) → ssp.<short_var>#
     getSets(x)  <- c(sets12, "scenario", "type", "variable")
   }
 
