@@ -7,13 +7,13 @@
 #' @param category  Which data to return: `"supply"` (wood fuel + manure fuel +
 #'   traditional crop residue fuel), `"potential"` (crop residue + wood residue +
 #'   biogas potentials), or `"all"` (both combined).
-#' @param cropresScen  Crop residue collection scenario — one of: 
-#'                     - `"cf0p3_md0"` (30\% collection, no min. density), 
+#' @param cropresScen  Crop residue collection scenario — one of:
+#'                     - `"cf0p3_md0"` (30\% collection, no min. density),
 #'                     - `"cf0p3_md2"` (30\%, 2 tDM/ha),
-#'                     - `"cf0p3_md4"` (30\%, 4 tDM/ha), 
+#'                     - `"cf0p3_md4"` (30\%, 4 tDM/ha),
 #'                     - `"cf0p1_md4"` (10\%, 4 tDM/ha).
 #' @param woodresFrac  Numeric 0–1. Share of the wood processing residue potential to
-#'                     include (default 0.5, i.e. full potential as estimated at 
+#'                     include (default 0.5, i.e. full potential as estimated at
 #'                     30\% of industrial roundwood demand).
 #' @param biogasFrac   Numeric 0–1. Share of the biogas feedstock potential to include
 #'                     (default 1).
@@ -35,7 +35,7 @@
 #' }
 #'
 #' @importFrom madrat readSource calcOutput
-#' @importFrom magclass mbind collapseNames add_dimension getYears getNames<- getSets<-
+#' @importFrom magclass mbind collapseNames addDim getYears getNames<- getSets<-
 #' @importFrom magpiesets findset
 
 calcBioenergyFeedstocksMAgPIE <- function(version     = "MAgPIE_4.14.0",
@@ -54,39 +54,27 @@ calcBioenergyFeedstocksMAgPIE <- function(version     = "MAgPIE_4.14.0",
     stop("cropresScen must be one of: ", paste(validScens, collapse = ", "))
   }
 
-  # Flatten read-function output from scenario.type[.category].variable
-  # → scenario.variable by keeping only the first (scenario) and last (item) parts.
-  # This drops the type/category prefix used for internal hierarchy in the read function.
-  flattenDims <- function(x) {
-    n     <- getNames(x)
-    parts <- strsplit(n, "\\.", fixed = TRUE)
-    getNames(x) <- vapply(parts, function(p) paste(p[1L], p[length(p)], sep = "."),
-                          character(1L))
-    getSets(x) <- c(getSets(x)[1:2], "scenario", "variable")
-    x
-  }
-
   out <- NULL
 
   # --- Supply ---
   if (category %in% c("supply", "all")) {
 
-    supply <- flattenDims(readSource("MAgPIEBiomass", subtype = paste0(version, ":supply")))
+    supply <- readSource("MAgPIEBiomass", subtype = paste0(version, ":supply"))
 
     # Traditional crop residue burning from calc1stBioDem, mapped to SSP scenarios
     # via gms$c60_1stgen_biodem in magpie/config/scenario_config.csv
     scenMap1stBio <- c(SSP1 = "phaseout2020", SSP2 = "const2020",  SSP3 = "const2030",
                        SSP4 = "const2020",   SSP5 = "phaseout2020", SDP  = "phaseout2020")
     kres    <- findset("kres")
-    resDem  <- calcOutput("1stBioDem", aggregate = FALSE)[, , kres]
+    resDem  <- calcOutput("1stBioDem", years = getYears(supply), aggregate = FALSE)[, , kres]
 
     residuefuel <- do.call(mbind, lapply(names(scenMap1stBio), function(ssp) {
       x <- dimSums(resDem[, , scenMap1stBio[[ssp]]], dim = "ItemCodeItem")
       getNames(x, dim = "scenario") <- ssp
       x
     }))
-    residuefuel <- add_dimension(residuefuel, dim = 3.2, add = "variable", nm = "residuefuel")
-    getSets(residuefuel)[3:4] <- c("scenario", "variable")
+    residuefuel <- addDim(residuefuel, dim = 3.2, dimName = "type", item = "residuefuel")
+    getSets(residuefuel)[3:4] <- c("scenario", "type")
 
     out <- mbind(out, supply, residuefuel)
   }
@@ -95,11 +83,11 @@ calcBioenergyFeedstocksMAgPIE <- function(version     = "MAgPIE_4.14.0",
   if (category %in% c("potential", "all")) {
 
     cropres <- readSource("MAgPIEBiomass", subtype = paste0(version, ":cropresPot"))
-    cropres <- flattenDims(collapseNames(cropres[, , cropresScen], collapsedim = "scen"))
+    cropres <- collapseNames(cropres[, , cropresScen], collapsedim = "scen")
 
-    woodres <- flattenDims(readSource("MAgPIEBiomass", subtype = paste0(version, ":woodresPot"))) * woodresFrac
+    woodres <- readSource("MAgPIEBiomass", subtype = paste0(version, ":woodresPot")) * woodresFrac
 
-    biogas  <- flattenDims(readSource("MAgPIEBiomass", subtype = paste0(version, ":biogasPot"))) * biogasFrac
+    biogas  <- readSource("MAgPIEBiomass", subtype = paste0(version, ":biogasPot")) * biogasFrac
 
     if (!isFALSE(zeroPast)) {
       histYears <- getYears(cropres)[getYears(cropres, as.integer = TRUE) <= as.integer(zeroPast)]
