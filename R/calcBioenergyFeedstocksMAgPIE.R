@@ -98,13 +98,6 @@ calcBioenergyFeedstocksMAgPIE <- function(version     = "MAgPIE_4.14.0",
     out <- mbind(out, cropres, woodres, biogas)
   }
 
-  # Reorder to variable.scenario — matching calcResFor2ndBioengery convention for REMIND
-  # (feedstock type at 3.1, SSP scenario at 3.2)
-  n     <- getNames(out)
-  parts <- strsplit(n, "\\.", fixed = TRUE)
-  getNames(out) <- vapply(parts, function(p) paste(p[2L], p[1L], sep = "."), character(1L))
-  getSets(out)  <- c(getSets(out)[1:2], "variable", "scenario")
-
   return(list(x           = out,
               weight      = NULL,
               unit        = "PJ/yr",
